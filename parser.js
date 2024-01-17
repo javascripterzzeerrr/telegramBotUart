@@ -24,7 +24,9 @@ bot.start(async (ctx) => {
             inline_keyboard: [
                 [
                     {text: 'last data', callback_data: "LAST"},
-                    {text: 'all data', callback_data: "ALL"}
+                    {text: 'all data', callback_data: "ALL"},
+                    {text: 'turn on relay', callback_data: 'Turn on relay'},
+                    {text: 'turn off relay', callback_data: 'Turn off relay'}
                 ],
             ]
         }
@@ -47,7 +49,9 @@ bot.action('ALL', async (ctx) => {
             inline_keyboard: [
                 [
                     {text: 'last data', callback_data: "LAST"},
-                    {text: 'all data', callback_data: "ALL"}
+                    {text: 'all data', callback_data: "ALL"},
+                    {text: 'turn on relay', callback_data: 'Turn on relay'},
+                    {text: 'turn off relay', callback_data: 'Turn off relay'}
                 ],
             ]
         }
@@ -82,12 +86,54 @@ bot.action('LAST', async (ctx) => {
             inline_keyboard: [
                 [
                     {text: 'last data', callback_data: "LAST"},
-                    {text: 'all data', callback_data: "ALL"}
+                    {text: 'all data', callback_data: "ALL"},
+                    {text: 'turn on relay', callback_data: 'Turn on relay'},
+                    {text: 'turn off relay', callback_data: 'Turn off relay'}
                 ],
             ]
         }
     });
 });
+
+bot.action('Turn on relay', async (ctx) => {
+    ctx.deleteMessage();
+
+    port.write("1");
+    console.log("!!!!!!!!!!!!!!!!!!!Write was sended 1!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+
+    await ctx.telegram.sendMessage(ctx.chat.id, 'Новые данные', {
+        reply_markup: {
+            inline_keyboard: [
+                [
+                    {text: 'last data', callback_data: "LAST"},
+                    {text: 'all data', callback_data: "ALL"},
+                    {text: 'turn on relay', callback_data: 'Turn on relay'},
+                    {text: 'turn off relay', callback_data: 'Turn off relay'}
+                ],
+            ]
+        }
+    });
+});
+
+bot.action('Turn off relay', async (ctx) => {
+    ctx.deleteMessage();
+
+    port.write("0");
+    console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!Write was sended 0!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+
+    await ctx.telegram.sendMessage(ctx.chat.id, 'Новые данные', {
+        reply_markup: {
+            inline_keyboard: [
+                [
+                    {text: 'last data', callback_data: "LAST"},
+                    {text: 'all data', callback_data: "ALL"},
+                    {text: 'turn on relay', callback_data: 'Turn on relay'},
+                    {text: 'turn off relay', callback_data: 'Turn off relay'}
+                ],
+            ]
+        }
+    });
+})
 
 bot.command('quit', async (ctx) => {
     // Explicit usage
@@ -144,6 +190,31 @@ parser.on('data', (data) => {
         return;
     }
 
+    console.log("!!!!!!!!!!!!!!!!DATA => ", data);
+
+    // let myReg = new RegExp("/\\d+(\\.\\d+)?/", "gi");
+    //
+    // const humidity = myReg.exec(data);
+
+    const humidity = data.slice(11, 16);
+    console.log("!!!!!!!!!!! HUM => ", humidity);
+
+    const temperature = data.slice(25, data.length);
+    console.log("!!!!!!!!!!! TEMP => ", temperature);
+
+    console.log("typeof humidity => ", typeof humidity);
+
+    // if (humidity) {
+    //     if (Number(humidity) > 70) {
+    //         port.write("1");
+    //         console.log("Write was sended 1");
+    //     }
+    //     else {
+    //         port.write("0");
+    //         console.log("Write was sended 0");
+    //     }
+    // }
+
     timmedDataLast = data;
 
     const date = new Date();
@@ -159,6 +230,7 @@ parser.on('data', (data) => {
     console.log('Received data:', trimmedData);
 
     filePath = `dataFromUart${year}_${month}_${datOfMonth}_${hour}`;
+    console.log("File path is ", filePath);
 
     if (filePath !== filePathLast) listFile.push(filePathLast);
 
@@ -172,12 +244,12 @@ parser.on('data', (data) => {
     });
 });
 
-setTimeout(() => {
-    for (file of filePathLast) {
-        fs.unlink(file, (err) => {
-            if (err) console.log(err);
-            // если возникла ошибка
-            else console.log(`${file} was deleted`);
-        });
-    }
-}, 10000);
+// setTimeout(() => {
+//     for (file of filePathLast) {
+//         fs.unlink(file, (err) => {
+//             if (err) console.log(err);
+//             // если возникла ошибка
+//             else console.log(`${file} was deleted`);
+//         });
+//     }
+// }, 10000);
